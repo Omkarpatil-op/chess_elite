@@ -39,31 +39,64 @@ class PiecePainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // Palette
-    final fillColor = isWhite ? const Color(0xFFFFFFFF) : const Color(0xFF1F2328);
-    final strokeColor = isWhite ? const Color(0xFF24292F) : const Color(0xFFE6EDF3);
-    final highlightColor = isWhite ? const Color(0xFFF0F6FC) : const Color(0xFF30363D);
+    // Premium Color Palette
+    Color baseFill;
+    Color strokeColor;
+    Color highlightColor;
+    Color detailColor;
+
+    if (style == PieceStyle.woodCarved) {
+      baseFill = isWhite ? const Color(0xFFF3E5AB) : const Color(0xFF5C3A21);
+      strokeColor = isWhite ? const Color(0xFF5D4037) : const Color(0xFF2C1609);
+      highlightColor = isWhite ? const Color(0xFFFFF8E7) : const Color(0xFF8D5B36);
+      detailColor = isWhite ? const Color(0xFF8D6E63) : const Color(0xFFD7CCC8);
+    } else if (style == PieceStyle.neoModern) {
+      baseFill = isWhite ? const Color(0xFFFFFFFF) : const Color(0xFF1E293B);
+      strokeColor = isWhite ? const Color(0xFF0F172A) : const Color(0xFF94A3B8);
+      highlightColor = isWhite ? const Color(0xFFF1F5F9) : const Color(0xFF334155);
+      detailColor = strokeColor;
+    } else if (style == PieceStyle.minimalAlpha) {
+      baseFill = isWhite ? const Color(0xFFFFFFFF) : const Color(0xFF18181B);
+      strokeColor = isWhite ? const Color(0xFF18181B) : const Color(0xFFE4E4E7);
+      highlightColor = isWhite ? const Color(0xFFFAFAFA) : const Color(0xFF27272A);
+      detailColor = strokeColor;
+    } else {
+      // Staunton Classic Tournament Standard
+      baseFill = isWhite ? const Color(0xFFFFFFFF) : const Color(0xFF1A1E24);
+      strokeColor = isWhite ? const Color(0xFF2B313A) : const Color(0xFFE2E8F0);
+      highlightColor = isWhite ? const Color(0xFFF8FAFC) : const Color(0xFF333B47);
+      detailColor = isWhite ? const Color(0xFF374151) : const Color(0xFFCBD5E1);
+    }
 
     final fillPaint = Paint()
-      ..color = fillColor
+      ..color = baseFill
       ..style = PaintingStyle.fill;
 
     final strokePaint = Paint()
       ..color = strokeColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.045
+      ..strokeWidth = (w * 0.046).clamp(1.5, 3.5)
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
 
     final detailStroke = Paint()
-      ..color = strokeColor
+      ..color = detailColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.035
+      ..strokeWidth = (w * 0.034).clamp(1.0, 2.5)
       ..strokeCap = StrokeCap.round;
 
     final highlightPaint = Paint()
       ..color = highlightColor
       ..style = PaintingStyle.fill;
+
+    // Subtle drop shadow under piece base for 3D depth
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.88), width: w * 0.65, height: h * 0.10),
+      shadowPaint,
+    );
 
     switch (piece.type) {
       case PieceType.pawn:
@@ -96,27 +129,27 @@ class PiecePainter extends CustomPainter {
     Paint detail,
     Paint highlight,
   ) {
-    // 1. Head circle
-    final headCenter = Offset(w * 0.5, h * 0.32);
+    // 1. Head circle with highlight
+    final headCenter = Offset(w * 0.5, h * 0.30);
     final headRadius = w * 0.16;
     canvas.drawCircle(headCenter, headRadius, fill);
     canvas.drawCircle(headCenter, headRadius, stroke);
 
-    // 2. Collar & Body
+    // 2. Collar & Curving Body
     final path = Path();
-    path.moveTo(w * 0.36, h * 0.44);
-    path.quadraticBezierTo(w * 0.5, h * 0.42, w * 0.64, h * 0.44);
-    path.quadraticBezierTo(w * 0.56, h * 0.65, w * 0.70, h * 0.76);
-    path.lineTo(w * 0.30, h * 0.76);
-    path.quadraticBezierTo(w * 0.44, h * 0.65, w * 0.36, h * 0.44);
+    path.moveTo(w * 0.36, h * 0.43);
+    path.quadraticBezierTo(w * 0.5, h * 0.40, w * 0.64, h * 0.43);
+    path.quadraticBezierTo(w * 0.55, h * 0.62, w * 0.68, h * 0.76);
+    path.lineTo(w * 0.32, h * 0.76);
+    path.quadraticBezierTo(w * 0.45, h * 0.62, w * 0.36, h * 0.43);
     path.close();
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // 3. Base
+    // 3. Tiered Base
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.54, height: h * 0.12),
-      Radius.circular(w * 0.05),
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.56, height: h * 0.11),
+      Radius.circular(w * 0.04),
     );
     canvas.drawRRect(baseRect, fill);
     canvas.drawRRect(baseRect, stroke);
@@ -132,29 +165,33 @@ class PiecePainter extends CustomPainter {
     bool isWhite,
   ) {
     final path = Path();
-    // Staunton Horse Head Profile
-    path.moveTo(w * 0.28, h * 0.82); // Base left
-    path.lineTo(w * 0.72, h * 0.82); // Base right
-    path.quadraticBezierTo(w * 0.68, h * 0.60, w * 0.62, h * 0.40); // Mane
-    path.lineTo(w * 0.64, h * 0.22); // Ear top
-    path.lineTo(w * 0.54, h * 0.28); // Forehead
-    path.quadraticBezierTo(w * 0.42, h * 0.32, w * 0.28, h * 0.45); // Snout top
-    path.lineTo(w * 0.26, h * 0.54); // Nostril
-    path.quadraticBezierTo(w * 0.36, h * 0.56, w * 0.42, h * 0.52); // Mouth
-    path.quadraticBezierTo(w * 0.46, h * 0.62, w * 0.38, h * 0.74); // Chest
-    path.lineTo(w * 0.28, h * 0.82);
+    // Staunton Championship Horse Head Silhouette
+    path.moveTo(w * 0.26, h * 0.82);
+    path.lineTo(w * 0.74, h * 0.82);
+    path.quadraticBezierTo(w * 0.70, h * 0.58, w * 0.64, h * 0.38); // Arched neck
+    path.lineTo(w * 0.66, h * 0.20); // Ear tip
+    path.lineTo(w * 0.55, h * 0.26); // Forehead
+    path.quadraticBezierTo(w * 0.42, h * 0.30, w * 0.26, h * 0.44); // Muzzle slope
+    path.lineTo(w * 0.24, h * 0.53); // Snout
+    path.quadraticBezierTo(w * 0.35, h * 0.55, w * 0.42, h * 0.50); // Lower jaw
+    path.quadraticBezierTo(w * 0.46, h * 0.60, w * 0.36, h * 0.73); // Chest
+    path.lineTo(w * 0.26, h * 0.82);
     path.close();
 
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // Eye
-    final eyeCenter = Offset(w * 0.46, h * 0.38);
+    // Eye orb
+    final eyeCenter = Offset(w * 0.46, h * 0.36);
     canvas.drawCircle(eyeCenter, w * 0.04, stroke);
 
-    // Mane details
-    canvas.drawLine(Offset(w * 0.58, h * 0.35), Offset(w * 0.66, h * 0.42), detail);
-    canvas.drawLine(Offset(w * 0.56, h * 0.48), Offset(w * 0.65, h * 0.55), detail);
+    // Mane arcs
+    canvas.drawLine(Offset(w * 0.59, h * 0.32), Offset(w * 0.68, h * 0.40), detail);
+    canvas.drawLine(Offset(w * 0.57, h * 0.45), Offset(w * 0.67, h * 0.53), detail);
+    canvas.drawLine(Offset(w * 0.55, h * 0.58), Offset(w * 0.66, h * 0.66), detail);
+
+    // Nostril mark
+    canvas.drawCircle(Offset(w * 0.30, h * 0.49), w * 0.02, detail);
   }
 
   void _drawBishop(
@@ -166,30 +203,30 @@ class PiecePainter extends CustomPainter {
     Paint detail,
     Paint highlight,
   ) {
-    // Top cross/orb
-    canvas.drawCircle(Offset(w * 0.5, h * 0.16), w * 0.04, fill);
-    canvas.drawCircle(Offset(w * 0.5, h * 0.16), w * 0.04, stroke);
+    // Cross / Top Orb
+    canvas.drawCircle(Offset(w * 0.5, h * 0.14), w * 0.045, fill);
+    canvas.drawCircle(Offset(w * 0.5, h * 0.14), w * 0.045, stroke);
 
     // Mitre Body
     final path = Path();
-    path.moveTo(w * 0.5, h * 0.20);
-    path.quadraticBezierTo(w * 0.74, h * 0.34, w * 0.66, h * 0.60);
-    path.quadraticBezierTo(w * 0.68, h * 0.72, w * 0.70, h * 0.76);
+    path.moveTo(w * 0.5, h * 0.18);
+    path.quadraticBezierTo(w * 0.75, h * 0.32, w * 0.67, h * 0.58);
+    path.quadraticBezierTo(w * 0.68, h * 0.70, w * 0.70, h * 0.76);
     path.lineTo(w * 0.30, h * 0.76);
-    path.quadraticBezierTo(w * 0.32, h * 0.72, w * 0.34, h * 0.60);
-    path.quadraticBezierTo(w * 0.26, h * 0.34, w * 0.5, h * 0.20);
+    path.quadraticBezierTo(w * 0.32, h * 0.70, w * 0.33, h * 0.58);
+    path.quadraticBezierTo(w * 0.25, h * 0.32, w * 0.5, h * 0.18);
     path.close();
 
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // Bishop cut / slash
-    canvas.drawLine(Offset(w * 0.44, h * 0.28), Offset(w * 0.58, h * 0.44), detail);
+    // Bishop cut / iconic mitre slash
+    canvas.drawLine(Offset(w * 0.42, h * 0.27), Offset(w * 0.58, h * 0.43), detail);
 
-    // Collar & Base
+    // Base collar
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.56, height: h * 0.12),
-      Radius.circular(w * 0.05),
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.58, height: h * 0.11),
+      Radius.circular(w * 0.04),
     );
     canvas.drawRRect(baseRect, fill);
     canvas.drawRRect(baseRect, stroke);
@@ -204,33 +241,33 @@ class PiecePainter extends CustomPainter {
     Paint detail,
   ) {
     final path = Path();
-    // Crenellations (Castle turrets)
-    path.moveTo(w * 0.26, h * 0.24);
-    path.lineTo(w * 0.34, h * 0.24);
-    path.lineTo(w * 0.34, h * 0.32);
-    path.lineTo(w * 0.44, h * 0.32);
-    path.lineTo(w * 0.44, h * 0.24);
-    path.lineTo(w * 0.56, h * 0.24);
-    path.lineTo(w * 0.56, h * 0.32);
-    path.lineTo(w * 0.66, h * 0.32);
-    path.lineTo(w * 0.66, h * 0.24);
-    path.lineTo(w * 0.74, h * 0.24);
-    path.lineTo(w * 0.70, h * 0.40);
-    path.lineTo(w * 0.64, h * 0.74);
-    path.lineTo(w * 0.36, h * 0.74);
-    path.lineTo(w * 0.30, h * 0.40);
+    // Battlements / Crenellated Fortress Turrets
+    path.moveTo(w * 0.25, h * 0.22);
+    path.lineTo(w * 0.34, h * 0.22);
+    path.lineTo(w * 0.34, h * 0.31);
+    path.lineTo(w * 0.44, h * 0.31);
+    path.lineTo(w * 0.44, h * 0.22);
+    path.lineTo(w * 0.56, h * 0.22);
+    path.lineTo(w * 0.56, h * 0.31);
+    path.lineTo(w * 0.66, h * 0.31);
+    path.lineTo(w * 0.66, h * 0.22);
+    path.lineTo(w * 0.75, h * 0.22);
+    path.lineTo(w * 0.71, h * 0.39);
+    path.lineTo(w * 0.65, h * 0.74);
+    path.lineTo(w * 0.35, h * 0.74);
+    path.lineTo(w * 0.29, h * 0.39);
     path.close();
 
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // Castle waist line
-    canvas.drawLine(Offset(w * 0.30, h * 0.40), Offset(w * 0.70, h * 0.40), detail);
+    // Waist Line
+    canvas.drawLine(Offset(w * 0.29, h * 0.39), Offset(w * 0.71, h * 0.39), detail);
 
-    // Base
+    // Castle Base
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.58, height: h * 0.13),
-      Radius.circular(w * 0.05),
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.60, height: h * 0.12),
+      Radius.circular(w * 0.04),
     );
     canvas.drawRRect(baseRect, fill);
     canvas.drawRRect(baseRect, stroke);
@@ -244,45 +281,45 @@ class PiecePainter extends CustomPainter {
     Paint stroke,
     Paint detail,
   ) {
-    // Crown Jewels (5 orbs)
+    // 5 Royal Crown Orbs
     final orbs = [
-      Offset(w * 0.22, h * 0.22),
-      Offset(w * 0.36, h * 0.17),
-      Offset(w * 0.50, h * 0.14),
-      Offset(w * 0.64, h * 0.17),
-      Offset(w * 0.78, h * 0.22),
+      Offset(w * 0.20, h * 0.20),
+      Offset(w * 0.35, h * 0.15),
+      Offset(w * 0.50, h * 0.12),
+      Offset(w * 0.65, h * 0.15),
+      Offset(w * 0.80, h * 0.20),
     ];
     for (final orb in orbs) {
-      canvas.drawCircle(orb, w * 0.035, fill);
-      canvas.drawCircle(orb, w * 0.035, stroke);
+      canvas.drawCircle(orb, w * 0.038, fill);
+      canvas.drawCircle(orb, w * 0.038, stroke);
     }
 
-    // Crown spikes & body
+    // Majestic Crown Body
     final path = Path();
-    path.moveTo(w * 0.22, h * 0.24);
-    path.lineTo(w * 0.30, h * 0.42);
-    path.lineTo(w * 0.36, h * 0.20);
-    path.lineTo(w * 0.44, h * 0.42);
-    path.lineTo(w * 0.50, h * 0.17);
-    path.lineTo(w * 0.56, h * 0.42);
-    path.lineTo(w * 0.64, h * 0.20);
-    path.lineTo(w * 0.70, h * 0.42);
-    path.lineTo(w * 0.78, h * 0.24);
-    path.quadraticBezierTo(w * 0.74, h * 0.60, w * 0.68, h * 0.74);
-    path.lineTo(w * 0.32, h * 0.74);
-    path.quadraticBezierTo(w * 0.26, h * 0.60, w * 0.22, h * 0.24);
+    path.moveTo(w * 0.20, h * 0.23);
+    path.lineTo(w * 0.29, h * 0.40);
+    path.lineTo(w * 0.35, h * 0.18);
+    path.lineTo(w * 0.43, h * 0.40);
+    path.lineTo(w * 0.50, h * 0.15);
+    path.lineTo(w * 0.57, h * 0.40);
+    path.lineTo(w * 0.65, h * 0.18);
+    path.lineTo(w * 0.71, h * 0.40);
+    path.lineTo(w * 0.80, h * 0.23);
+    path.quadraticBezierTo(w * 0.75, h * 0.58, w * 0.69, h * 0.74);
+    path.lineTo(w * 0.31, h * 0.74);
+    path.quadraticBezierTo(w * 0.25, h * 0.58, w * 0.20, h * 0.23);
     path.close();
 
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // Waist band
-    canvas.drawLine(Offset(w * 0.31, h * 0.48), Offset(w * 0.69, h * 0.48), detail);
+    // Crown Waist Band
+    canvas.drawLine(Offset(w * 0.29, h * 0.46), Offset(w * 0.71, h * 0.46), detail);
 
-    // Base
+    // Royal Base
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.62, height: h * 0.13),
-      Radius.circular(w * 0.05),
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.64, height: h * 0.12),
+      Radius.circular(w * 0.04),
     );
     canvas.drawRRect(baseRect, fill);
     canvas.drawRRect(baseRect, stroke);
@@ -296,39 +333,39 @@ class PiecePainter extends CustomPainter {
     Paint stroke,
     Paint detail,
   ) {
-    // Cross on top
+    // Sovereign Cross on Crown Peak
     final crossV = Path()
-      ..moveTo(w * 0.50, h * 0.10)
-      ..lineTo(w * 0.50, h * 0.24);
+      ..moveTo(w * 0.50, h * 0.08)
+      ..lineTo(w * 0.50, h * 0.22);
     final crossH = Path()
-      ..moveTo(w * 0.42, h * 0.16)
-      ..lineTo(w * 0.58, h * 0.16);
+      ..moveTo(w * 0.41, h * 0.14)
+      ..lineTo(w * 0.59, h * 0.14);
 
     canvas.drawPath(crossV, stroke);
     canvas.drawPath(crossH, stroke);
 
-    // Crown Body
+    // Sovereign Crown Profile
     final path = Path();
-    path.moveTo(w * 0.32, h * 0.26);
-    path.quadraticBezierTo(w * 0.50, h * 0.20, w * 0.68, h * 0.26);
-    path.quadraticBezierTo(w * 0.78, h * 0.36, w * 0.72, h * 0.52);
-    path.quadraticBezierTo(w * 0.68, h * 0.65, w * 0.68, h * 0.74);
-    path.lineTo(w * 0.32, h * 0.74);
-    path.quadraticBezierTo(w * 0.32, h * 0.65, w * 0.28, h * 0.52);
-    path.quadraticBezierTo(w * 0.22, h * 0.36, w * 0.32, h * 0.26);
+    path.moveTo(w * 0.30, h * 0.24);
+    path.quadraticBezierTo(w * 0.50, h * 0.18, w * 0.70, h * 0.24);
+    path.quadraticBezierTo(w * 0.80, h * 0.35, w * 0.73, h * 0.52);
+    path.quadraticBezierTo(w * 0.70, h * 0.65, w * 0.69, h * 0.74);
+    path.lineTo(w * 0.31, h * 0.74);
+    path.quadraticBezierTo(w * 0.30, h * 0.65, w * 0.27, h * 0.52);
+    path.quadraticBezierTo(w * 0.20, h * 0.35, w * 0.30, h * 0.24);
     path.close();
 
     canvas.drawPath(path, fill);
     canvas.drawPath(path, stroke);
 
-    // Arches in royal crown
-    canvas.drawLine(Offset(w * 0.34, h * 0.44), Offset(w * 0.66, h * 0.44), detail);
-    canvas.drawLine(Offset(w * 0.50, h * 0.24), Offset(w * 0.50, h * 0.44), detail);
+    // Imperial Arch lines
+    canvas.drawLine(Offset(w * 0.33, h * 0.42), Offset(w * 0.67, h * 0.42), detail);
+    canvas.drawLine(Offset(w * 0.50, h * 0.22), Offset(w * 0.50, h * 0.42), detail);
 
-    // Base
+    // Grandmaster Base
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.64, height: h * 0.13),
-      Radius.circular(w * 0.05),
+      Rect.fromCenter(center: Offset(w * 0.5, h * 0.82), width: w * 0.66, height: h * 0.12),
+      Radius.circular(w * 0.04),
     );
     canvas.drawRRect(baseRect, fill);
     canvas.drawRRect(baseRect, stroke);

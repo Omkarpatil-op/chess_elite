@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../core/chess_engine/ai_engine.dart';
 import '../../core/chess_engine/models/piece.dart';
 import '../../core/di/service_locator.dart';
@@ -7,6 +9,7 @@ import '../../core/theme/app_typography.dart';
 import '../../domain/models/chess_match.dart';
 import '../../domain/models/time_control.dart';
 import '../../domain/models/user_profile.dart';
+import 'analysis_screen.dart';
 import 'friends_screen.dart';
 import 'game_screen.dart';
 import 'history_screen.dart';
@@ -41,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {
         _currentUser = user;
-        _recentMatches = matches.take(5).toList();
+        _recentMatches = matches.take(4).toList();
         _isLoading = false;
       });
     }
@@ -56,6 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       backgroundColor: AppColors.darkSurface,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -68,16 +74,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text('Play vs Computer', style: AppTypography.titleLarge),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Icons.close_rounded),
                     onPressed: () => Navigator.of(ctx).pop(),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
 
               // AI Difficulty
-              const Text('Difficulty Level', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text('Difficulty Level', style: AppTypography.titleSmall),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -97,11 +103,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Play As Color
-              const Text('Play As', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text('Play As Color', style: AppTypography.titleSmall),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -116,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onSelected: (_) => setModalState(() => selectedColor = PieceColor.white),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: ChoiceChip(
                       label: const Center(child: Text('Black ⚫')),
@@ -131,12 +137,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Start Game Button
+              // Time Control
+              Text('Time Control', style: AppTypography.titleSmall),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  TimeControl.bullet1_0,
+                  TimeControl.blitz3_0,
+                  TimeControl.blitz5_0,
+                  TimeControl.rapid10_0,
+                  TimeControl.classical30_0,
+                ].map((tc) {
+                  final isSelected = tc.id == selectedTime.id;
+                  return ChoiceChip(
+                    label: Text(tc.displayName),
+                    selected: isSelected,
+                    selectedColor: AppColors.goldAccent,
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.black : Colors.white,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    onSelected: (val) {
+                      if (val) setModalState(() => selectedTime = tc);
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 28),
+
+              // Start AI Match Button
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
@@ -152,7 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ).then((_) => _loadDashboard());
                   },
-                  child: const Text('Start AI Game'),
+                  icon: const Icon(Icons.psychology_rounded, size: 20),
+                  label: const Text('Start Sparring Match'),
                 ),
               ),
             ],
@@ -168,6 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.darkSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -175,15 +215,19 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Pass & Play (Local 2-Player)', style: AppTypography.titleLarge),
-              const SizedBox(height: 8),
-              const Text('Play on the same device with a friend and interactive chess clocks.'),
-              const SizedBox(height: 16),
+              Text('Pass & Play (Local Table)', style: AppTypography.titleLarge),
+              const SizedBox(height: 6),
+              Text(
+                'Play on the same screen with dual active digital tournament clocks.',
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondaryDark),
+              ),
+              const SizedBox(height: 18),
 
-              const Text('Time Control', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
+              Text('Time Control', style: AppTypography.titleSmall),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: [
                   TimeControl.blitz3_2,
                   TimeControl.blitz5_0,
@@ -205,11 +249,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.of(ctx).pop();
                     Navigator.of(context).push(
@@ -224,7 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ).then((_) => _loadDashboard());
                   },
-                  child: const Text('Start Local Game'),
+                  icon: const Icon(Icons.people_alt_rounded, size: 20),
+                  label: const Text('Start Local Game'),
                 ),
               ),
             ],
@@ -237,10 +282,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.darkBackground,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.goldAccent),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Shimmer.fromColors(
+              baseColor: AppColors.darkSurface,
+              highlightColor: AppColors.darkSurfaceElevated,
+              child: Column(
+                children: [
+                  Container(height: 60, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16))),
+                  const SizedBox(height: 20),
+                  Container(height: 140, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))),
+                  const SizedBox(height: 20),
+                  Container(height: 180, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
@@ -258,33 +318,31 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(child: pages[_currentNavIndex]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentNavIndex,
-        backgroundColor: AppColors.darkSurface,
-        indicatorColor: AppColors.goldAccent.withValues(alpha: 0.2),
         onDestinationSelected: (idx) => setState(() => _currentNavIndex = idx),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield, color: AppColors.goldAccent),
-            label: 'Play',
+            selectedIcon: Icon(Icons.shield_rounded),
+            label: 'Arena',
           ),
           NavigationDestination(
             icon: Icon(Icons.leaderboard_outlined),
-            selectedIcon: Icon(Icons.leaderboard, color: AppColors.goldAccent),
-            label: 'Leaderboard',
+            selectedIcon: Icon(Icons.leaderboard_rounded),
+            label: 'Ranks',
           ),
           NavigationDestination(
             icon: Icon(Icons.people_alt_outlined),
-            selectedIcon: Icon(Icons.people_alt, color: AppColors.goldAccent),
-            label: 'Friends',
+            selectedIcon: Icon(Icons.people_alt_rounded),
+            label: 'Social',
           ),
           NavigationDestination(
             icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history, color: AppColors.goldAccent),
-            label: 'History',
+            selectedIcon: Icon(Icons.history_rounded),
+            label: 'Archive',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings, color: AppColors.goldAccent),
+            icon: Icon(Icons.tune_rounded),
+            selectedIcon: Icon(Icons.tune_rounded),
             label: 'Settings',
           ),
         ],
@@ -295,313 +353,509 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDashboardView() {
     final user = _currentUser;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. User Header & Profile Card
-          InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ProfileScreen(user: user),
-                ),
-              ).then((_) => _loadDashboard());
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.darkSurface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.darkBorder),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: AppColors.goldAccent.withValues(alpha: 0.2),
-                    child: const Icon(Icons.person, color: AppColors.goldAccent, size: 30),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              user?.username ?? 'Guest Player',
-                              style: AppTypography.titleMedium.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (user?.isGuest ?? true) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.sapphireInfo.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'GUEST',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.sapphireInfo),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.timer_outlined, size: 14, color: AppColors.goldAccent),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Rapid ${user?.ratingRapid ?? 1200}  •  Blitz ${user?.ratingBlitz ?? 1200}',
-                              style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMutedDark),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // 2. Play Online Quick Match Button
-          InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => MatchmakingScreen(user: user!),
-                ),
-              ).then((_) => _loadDashboard());
-            },
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFD29922), Color(0xFF9E6A03)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.goldAccent.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 32),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'PLAY ONLINE',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Ranked Matchmaking (3 min / 10 min)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 36),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 3. Secondary Play Modes (Play vs Computer, Pass & Play)
-          Row(
-            children: [
-              Expanded(
-                child: _buildModeCard(
-                  icon: Icons.smart_toy_outlined,
-                  title: 'Play vs AI',
-                  subtitle: '6 Bot Tiers',
-                  onTap: _showPlayAiModal,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildModeCard(
-                  icon: Icons.people_outline,
-                  title: 'Pass & Play',
-                  subtitle: 'Same Device',
-                  onTap: _showPassAndPlayModal,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // 4. Recent Games Section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Recent Games', style: AppTypography.titleMedium),
-              TextButton(
-                onPressed: () => setState(() => _currentNavIndex = 3),
-                child: const Text('View All', style: TextStyle(color: AppColors.goldAccent)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          if (_recentMatches.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              alignment: Alignment.center,
-              child: Column(
-                children: [
-                  Icon(Icons.sports_esports_outlined, size: 48, color: AppColors.textMutedDark.withValues(alpha: 0.5)),
-                  const SizedBox(height: 12),
-                  Text('No games played yet', style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark)),
-                  const SizedBox(height: 4),
-                  Text('Start your first match above!', style: AppTypography.labelSmall.copyWith(color: AppColors.textMutedDark)),
-                ],
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _recentMatches.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, idx) {
-                final match = _recentMatches[idx];
-                final isWhite = match.whitePlayerId == 'user';
-                final isWin = match.winner == (isWhite ? PieceColor.white : PieceColor.black);
-                final isDraw = match.result.isDraw;
-
-                final resultColor = isDraw
-                    ? AppColors.sapphireInfo
-                    : (isWin ? AppColors.emeraldSuccess : AppColors.rubyError);
-
-                final resultText = isDraw ? 'Draw' : (isWin ? 'Win' : 'Loss');
-
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.darkSurface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.darkBorder),
-                  ),
+    return RefreshIndicator(
+      onRefresh: _loadDashboard,
+      color: AppColors.goldAccent,
+      backgroundColor: AppColors.darkSurface,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Top Bar / Profile Passport Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    ).then((_) => _loadDashboard());
+                  },
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: resultColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(6),
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [AppColors.goldLight, AppColors.goldAccent],
+                          ),
+                          border: Border.all(color: AppColors.goldAccent, width: 1.5),
                         ),
-                        child: Text(
-                          resultText,
-                          style: TextStyle(
-                            color: resultColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                        child: Center(
+                          child: Text(
+                            user != null && user.username.isNotEmpty ? user.username[0].toUpperCase() : 'G',
+                            style: const TextStyle(
+                              color: Color(0xFF0D121C),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isWhite ? match.blackPlayerName : match.whitePlayerName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.username ?? 'Grandmaster',
+                            style: AppTypography.titleMedium.copyWith(
+                              fontWeight: FontWeight.w800,
                             ),
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.emeraldSuccess,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Grandmaster Tier',
+                                style: AppTypography.labelSmall.copyWith(
+                                  color: AppColors.goldLight,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                Row(
+                  children: [
+                    IconButton.filledTonal(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        ).then((_) => _loadDashboard());
+                      },
+                      icon: const Icon(Icons.person_outline_rounded, size: 20),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.darkSurfaceElevated,
+                        foregroundColor: AppColors.textPrimaryDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // 2. Hero ELO Rating Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: AppColors.darkCardGradient,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.darkBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'OFFICIAL RATING',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.textMutedDark,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.emeraldSuccess.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.emeraldSuccess.withValues(alpha: 0.4)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.trending_up_rounded, size: 14, color: AppColors.emeraldSuccess),
+                            const SizedBox(width: 4),
                             Text(
-                              '${match.timeControl.name}  •  ${match.terminationReason ?? ""}',
-                              style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark),
+                              '+24 this week',
+                              style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.emeraldSuccess,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      if (match.whiteRatingDelta != null) ...[
-                        Text(
-                          (isWhite ? match.whiteRatingDelta! : match.blackRatingDelta!) >= 0
-                              ? '+${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}'
-                              : '${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: (isWhite ? match.whiteRatingDelta! : match.blackRatingDelta!) >= 0
-                                ? AppColors.emeraldSuccess
-                                : AppColors.rubyError,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
-                );
+                  const SizedBox(height: 10),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '${user?.ratingRapid ?? 1482}',
+                        style: AppTypography.displayLarge.copyWith(
+                          fontSize: 40,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.goldLight,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'RAPID ELO',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.textSecondaryDark,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Mini Stats Ticker (Blitz, Bullet, Win Rate)
+                  Row(
+                    children: [
+                      _buildMiniStat('⚡ Bullet', '${user?.ratingBullet ?? 1400}'),
+                      const SizedBox(width: 12),
+                      _buildMiniStat('🔥 Blitz', '${user?.ratingBlitz ?? 1450}'),
+                      const SizedBox(width: 12),
+                      _buildMiniStat('🏆 Win Rate', '${user?.winRate.toStringAsFixed(1) ?? "64.2"}%'),
+                    ],
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+            const SizedBox(height: 24),
+
+            // 3. Play Chess Modes Section
+            Text(
+              'PLAY CHESS',
+              style: AppTypography.labelSmall.copyWith(
+                color: AppColors.textMutedDark,
+                letterSpacing: 1.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Mode 1: Quick Rated Match
+            _buildPlayCard(
+              title: 'Quick Match',
+              subtitle: 'Find an opponent in rated 10 min Rapid arena',
+              badge: 'ONLINE',
+              badgeColor: AppColors.emeraldSuccess,
+              icon: Icons.bolt_rounded,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1E2838), Color(0xFF131A26)],
+              ),
+              onTap: () {
+                if (user != null) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => MatchmakingScreen(user: user),
+                    ),
+                  ).then((_) => _loadDashboard());
+                }
               },
             ),
-        ],
+            const SizedBox(height: 12),
+
+            // Mode 2: Play Computer (AI Sparring)
+            _buildPlayCard(
+              title: 'Play Computer',
+              subtitle: 'Spar against intelligent chess engines & bot personalities',
+              badge: 'AI ENGINE',
+              badgeColor: AppColors.goldAccent,
+              icon: Icons.psychology_rounded,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF24221A), Color(0xFF18150F)],
+              ),
+              onTap: _showPlayAiModal,
+            ),
+            const SizedBox(height: 12),
+
+            // Mode 3: Pass & Play
+            _buildPlayCard(
+              title: 'Pass & Play Local',
+              subtitle: 'Compete on the same device with dual chess clocks',
+              badge: '2 PLAYER',
+              badgeColor: AppColors.sapphireInfo,
+              icon: Icons.people_alt_rounded,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1A2234), Color(0xFF101622)],
+              ),
+              onTap: _showPassAndPlayModal,
+            ),
+            const SizedBox(height: 28),
+
+            // 4. Recent Games Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'RECENT MATCHES',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textMutedDark,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _currentNavIndex = 3),
+                  child: Text(
+                    'View All →',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.goldAccent,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            if (_recentMatches.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.darkSurface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.darkBorderSubtle),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'No games recorded yet. Start your first match above!',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textMutedDark),
+                ),
+              )
+            else
+              Column(
+                children: _recentMatches.map((m) => _buildRecentMatchRow(m)).toList(),
+              ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildModeCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+  Widget _buildMiniStat(String label, String value) {
+    return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.darkSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.darkBorder),
+          color: AppColors.darkSurfaceElevated,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.darkBorderSubtle),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.goldAccent, size: 28),
-            const SizedBox(height: 12),
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: AppTypography.labelSmall.copyWith(
+                fontSize: 10,
+                color: AppColors.textSecondaryDark,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(subtitle, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark)),
+            Text(
+              value,
+              style: AppTypography.ratingDigits.copyWith(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimaryDark,
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayCard({
+    required String title,
+    required String subtitle,
+    required String badge,
+    required Color badgeColor,
+    required IconData icon,
+    required Gradient gradient,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.darkBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: badgeColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+              ),
+              child: Icon(icon, color: badgeColor, size: 26),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.titleMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: badgeColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          badge,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: badgeColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondaryDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textMutedDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentMatchRow(ChessMatch match) {
+    final isWhite = match.whitePlayerId == 'user';
+    final isWin = match.winner == (isWhite ? PieceColor.white : PieceColor.black);
+    final isDraw = match.result.isDraw;
+
+    final resultColor = isDraw
+        ? AppColors.sapphireInfo
+        : (isWin ? AppColors.emeraldSuccess : AppColors.rubyError);
+
+    final resultText = isDraw ? 'Draw' : (isWin ? 'Win' : 'Loss');
+    final opponentName = isWhite ? match.blackPlayerName : match.whitePlayerName;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => AnalysisScreen(match: match)),
+          );
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.darkBorder),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: resultColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: resultColor.withValues(alpha: 0.35)),
+                ),
+                child: Text(
+                  resultText,
+                  style: TextStyle(
+                    color: resultColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      opponentName,
+                      style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    Text(
+                      match.timeControl.name,
+                      style: AppTypography.bodySmall.copyWith(color: AppColors.textMutedDark, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              if (match.whiteRatingDelta != null)
+                Text(
+                  (isWhite ? match.whiteRatingDelta! : match.blackRatingDelta!) >= 0
+                      ? '+${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}'
+                      : '${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}',
+                  style: AppTypography.ratingDigits.copyWith(
+                    color: resultColor,
+                    fontSize: 13,
+                  ),
+                ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textMutedDark),
+            ],
+          ),
         ),
       ),
     );

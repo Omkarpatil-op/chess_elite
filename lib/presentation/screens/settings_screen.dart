@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: AppColors.darkSurface,
         title: const Text('Delete Account?'),
         content: const Text(
-          'This will permanently delete your ratings, games history, and all stored data. This action cannot be undone.',
+          'This will permanently delete your rating history, game archives, and credentials. This action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -70,13 +70,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        title: const Text('Settings & Customization'),
+        title: const Text('Settings & Aesthetics'),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           // 1. Board & Piece Themes Section
-          _buildSectionHeader('Appearance & Aesthetics'),
+          _buildSectionHeader('CHESSBOARD & PIECES'),
           Container(
             decoration: BoxDecoration(
               color: AppColors.darkSurface,
@@ -88,23 +88,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   title: const Text('Board Theme'),
                   subtitle: Text(_settings.boardTheme.label),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textMutedDark),
                   onTap: _showBoardThemePicker,
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 ListTile(
-                  title: const Text('Piece Style'),
+                  title: const Text('Piece Vector Style'),
                   subtitle: Text(_settings.pieceStyle.label),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textMutedDark),
                   onTap: _showPieceStylePicker,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
           // 2. Audio & Haptics Section
-          _buildSectionHeader('Sound & Vibration'),
+          _buildSectionHeader('SOUND & HAPTICS'),
           Container(
             decoration: BoxDecoration(
               color: AppColors.darkSurface,
@@ -114,17 +114,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Sound Effects'),
-                  subtitle: const Text('Move, capture, check, and game cues'),
+                  title: const Text('Acoustic Sound Effects'),
+                  subtitle: const Text('Tactile moves, captures, check cues & clocks'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.soundEnabled,
                   onChanged: (val) =>
                       _updateSettings(_settings.copyWith(soundEnabled: val)),
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 SwitchListTile(
-                  title: const Text('Haptic Feedback'),
-                  subtitle: const Text('Tactile responses on moves and checks'),
+                  title: const Text('Haptic Vibration Feedback'),
+                  subtitle: const Text('Subtle haptic pulses on piece contact and checkmate'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.hapticsEnabled,
                   onChanged: (val) =>
@@ -133,10 +133,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
           // 3. Gameplay Preferences Section
-          _buildSectionHeader('Gameplay Preferences'),
+          _buildSectionHeader('GAMEPLAY & ASSISTS'),
           Container(
             decoration: BoxDecoration(
               color: AppColors.darkSurface,
@@ -146,35 +146,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  title: const Text('Legal Move Indicators'),
-                  subtitle: const Text('Show dots and capture rings for selected pieces'),
+                  title: const Text('Legal Destination Highlights'),
+                  subtitle: const Text('Show target dots and capture rings on selection'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.showLegalMoves,
                   onChanged: (val) =>
                       _updateSettings(_settings.copyWith(showLegalMoves: val)),
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 SwitchListTile(
-                  title: const Text('Board Coordinates'),
-                  subtitle: const Text('Show a-h and 1-8 square coordinates'),
+                  title: const Text('Board Coordinates (a-h / 1-8)'),
+                  subtitle: const Text('Show algebraic rank and file markings'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.showCoordinates,
                   onChanged: (val) =>
                       _updateSettings(_settings.copyWith(showCoordinates: val)),
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 SwitchListTile(
                   title: const Text('Auto-Queen Promotion'),
-                  subtitle: const Text('Automatically promote to Queen without dialog'),
+                  subtitle: const Text('Instantly promote pawns to Queen without picker'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.autoQueenPromotion,
                   onChanged: (val) =>
                       _updateSettings(_settings.copyWith(autoQueenPromotion: val)),
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 SwitchListTile(
-                  title: const Text('Confirm Resign'),
-                  subtitle: const Text('Ask for confirmation before forfeiting match'),
+                  title: const Text('Confirm Match Resignation'),
+                  subtitle: const Text('Show safety confirmation before forfeit'),
                   activeThumbColor: AppColors.goldAccent,
                   value: _settings.confirmResign,
                   onChanged: (val) =>
@@ -183,10 +183,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
 
-          // 4. Account & Data Management
-          _buildSectionHeader('Account & Privacy'),
+          // 4. Account & Privacy
+          _buildSectionHeader('ACCOUNT & SESSION'),
           Container(
             decoration: BoxDecoration(
               color: AppColors.darkSurface,
@@ -208,11 +208,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 ListTile(
                   leading: const Icon(Icons.delete_forever_rounded, color: AppColors.rubyError),
                   title: const Text('Delete Account', style: TextStyle(color: AppColors.rubyError)),
-                  subtitle: const Text('Permanently erase account and history'),
+                  subtitle: const Text('Permanently erase account data and rating record'),
                   onTap: _confirmDeleteAccount,
                 ),
               ],
@@ -222,7 +222,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           Center(
             child: Text(
-              'Chess Elite v1.0.0 (Build 1) • Production Ready',
+              'Chess Elite v1.0.0 (Grandmaster Edition) • Production Ready',
               style: AppTypography.labelSmall.copyWith(color: AppColors.textMutedDark),
             ),
           ),
@@ -239,8 +239,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title,
         style: AppTypography.labelSmall.copyWith(
           color: AppColors.goldAccent,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.0,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
         ),
       ),
     );
@@ -250,25 +250,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.darkSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Choose Board Theme', style: AppTypography.titleLarge),
+            Text('Choose Tournament Board Theme', style: AppTypography.titleLarge),
             const SizedBox(height: 16),
             ...BoardThemeType.values.map((theme) {
               final isSelected = theme == _settings.boardTheme;
               final colors = BoardThemeColors.get(theme);
               return ListTile(
                 leading: Container(
-                  width: 32,
-                  height: 32,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.darkBorder),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.darkBorder, width: 1.5),
                   ),
+                  clipBehavior: Clip.antiAlias,
                   child: Row(
                     children: [
                       Expanded(child: Container(color: colors.lightSquare)),
@@ -295,13 +299,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.darkSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Choose Piece Style', style: AppTypography.titleLarge),
+            Text('Choose Piece Silhouette Style', style: AppTypography.titleLarge),
             const SizedBox(height: 16),
             ...PieceStyle.values.map((style) {
               final isSelected = style == _settings.pieceStyle;

@@ -40,11 +40,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.darkSurface,
-        title: const Text('Add Friend'),
+        title: const Text('Add Competitor'),
         content: TextField(
           controller: _searchController,
           decoration: const InputDecoration(
-            hintText: 'Enter username',
+            hintText: 'Enter username or player tag',
             prefixIcon: Icon(Icons.person_search_rounded),
           ),
         ),
@@ -63,12 +63,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 _loadFriends();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Friend request sent to $query!')),
+                    SnackBar(content: Text('Friend request dispatched to $query!')),
                   );
                 }
               }
             },
-            child: const Text('Send Request'),
+            child: const Text('Send Invite'),
           ),
         ],
       ),
@@ -99,7 +99,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        title: const Text('Friends & Community'),
+        title: const Text('Social & Competitors'),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_alt_1_rounded),
@@ -112,18 +112,37 @@ class _FriendsScreenState extends State<FriendsScreen> {
           ? const Center(child: CircularProgressIndicator(color: AppColors.goldAccent))
           : _friends.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.people_outline, size: 64, color: AppColors.textMutedDark),
-                      const SizedBox(height: 16),
-                      Text('No friends added yet', style: AppTypography.titleMedium),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: _showAddFriendDialog,
-                        child: const Text('Find Players'),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.darkSurfaceElevated,
+                            border: Border.all(color: AppColors.darkBorder),
+                          ),
+                          child: const Icon(Icons.people_outline_rounded, size: 40, color: AppColors.goldAccent),
+                        ),
+                        const SizedBox(height: 20),
+                        Text('No Friends Added', style: AppTypography.titleLarge),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Invite friends to challenge them to live matches anytime.',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: _showAddFriendDialog,
+                          icon: const Icon(Icons.person_add_rounded, size: 18),
+                          label: const Text('Find Players'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.separated(
@@ -146,10 +165,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 24,
-                                backgroundColor: AppColors.goldAccent.withValues(alpha: 0.2),
+                                backgroundColor: AppColors.goldAccent.withValues(alpha: 0.15),
                                 child: Text(
-                                  friend.username[0],
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.goldAccent),
+                                  friend.username.isNotEmpty ? friend.username[0].toUpperCase() : 'P',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.goldAccent,
+                                  ),
                                 ),
                               ),
                               Container(
@@ -170,7 +192,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               children: [
                                 Text(
                                   friend.username,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -183,10 +205,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             ),
                           ),
                           Text(
-                            '${friend.rating}',
-                            style: AppTypography.labelSmall.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.goldAccent,
+                            '${friend.rating} Elo',
+                            style: AppTypography.ratingDigits.copyWith(
+                              color: AppColors.goldLight,
+                              fontSize: 13,
                             ),
                           ),
                           const SizedBox(width: 8),

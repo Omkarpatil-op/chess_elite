@@ -39,7 +39,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        title: const Text('Global Leaderboard'),
+        title: const Text('Global Championship Ranks'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.goldAccent))
@@ -47,7 +47,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               children: [
                 // Top 3 Podium
                 if (_entries.length >= 3) _buildPodium(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // Ranking List
                 Expanded(
@@ -72,7 +72,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final third = _entries[2];
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
         border: const Border(bottom: BorderSide(color: AppColors.darkBorder)),
@@ -81,11 +81,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // 2nd Place
-          _buildPodiumSpot(second, 2, const Color(0xFFC0C0C0), 100),
-          // 1st Place (Tallest)
-          _buildPodiumSpot(first, 1, AppColors.goldAccent, 130),
-          // 3rd Place
+          // 2nd Place (Silver)
+          _buildPodiumSpot(second, 2, const Color(0xFFC0C0C0), 95),
+          // 1st Place (Gold - Crown)
+          _buildPodiumSpot(first, 1, AppColors.goldAccent, 125),
+          // 3rd Place (Bronze)
           _buildPodiumSpot(third, 3, const Color(0xFFCD7F32), 80),
         ],
       ),
@@ -104,15 +104,30 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         Stack(
           alignment: Alignment.topRight,
           children: [
-            CircleAvatar(
-              radius: rank == 1 ? 32 : 26,
-              backgroundColor: badgeColor.withValues(alpha: 0.2),
-              child: Text(
-                entry.username[0],
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: rank == 1 ? 22 : 18,
-                  color: badgeColor,
+            Container(
+              width: rank == 1 ? 68 : 56,
+              height: rank == 1 ? 68 : 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [badgeColor.withValues(alpha: 0.3), AppColors.darkSurfaceElevated],
+                ),
+                border: Border.all(color: badgeColor, width: rank == 1 ? 2.5 : 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: badgeColor.withValues(alpha: 0.25),
+                    blurRadius: 14,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  entry.username.isNotEmpty ? entry.username[0].toUpperCase() : 'G',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: rank == 1 ? 24 : 20,
+                    color: badgeColor,
+                  ),
                 ),
               ),
             ),
@@ -126,24 +141,26 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 '$rank',
                 style: const TextStyle(
                   fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w900,
                   color: Colors.black,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Text(
           entry.username,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: AppTypography.titleSmall.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
         ),
         Text(
-          '${entry.rating}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+          '${entry.rating} Elo',
+          style: AppTypography.ratingDigits.copyWith(
             color: badgeColor,
-            fontSize: 14,
+            fontSize: 13,
           ),
         ),
       ],
@@ -155,20 +172,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.darkBorder),
       ),
       child: Row(
         children: [
-          // Rank
+          // Rank Number
           SizedBox(
             width: 32,
             child: Text(
               '#${entry.rank}',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
                 color: entry.rank <= 3 ? AppColors.goldAccent : AppColors.textSecondaryDark,
-                fontSize: 15,
+                fontSize: 14,
               ),
             ),
           ),
@@ -185,8 +202,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               child: Text(
                 entry.title!,
                 style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
                   color: Colors.black,
                 ),
               ),
@@ -194,18 +211,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             const SizedBox(width: 8),
           ],
 
-          // Username
+          // Username & Stats
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   entry.username,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
                 ),
                 Text(
-                  '${entry.gamesPlayed} games  •  ${entry.winRate.toStringAsFixed(1)}% win rate',
-                  style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark),
+                  '${entry.gamesPlayed} matches  •  ${entry.winRate.toStringAsFixed(1)}% win rate',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textSecondaryDark,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -214,9 +234,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
           // Rating
           Text(
             '${entry.rating}',
-            style: AppTypography.titleMedium.copyWith(
-              color: AppColors.goldAccent,
-              fontWeight: FontWeight.bold,
+            style: AppTypography.ratingDigits.copyWith(
+              color: AppColors.goldLight,
+              fontSize: 16,
             ),
           ),
         ],

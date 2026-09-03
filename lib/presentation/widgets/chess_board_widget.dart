@@ -82,28 +82,36 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
           _legalMovesFromSelected.where((m) => m.to == square).toList();
 
       if (matchingMoves.isNotEmpty) {
-        // Check if promotion is needed
-        if (matchingMoves.any((m) => m.promotion != null)) {
-          final selectedPromo = widget.onPromotionRequested != null
-              ? await widget.onPromotionRequested!(_selectedSquare!, square)
-              : PieceType.queen;
-
-          if (selectedPromo != null) {
-            final promoMove = matchingMoves.firstWhere(
-              (m) => m.promotion == selectedPromo,
-              orElse: () => matchingMoves.first,
-            );
-            _clearSelection();
-            widget.onMove?.call(promoMove);
-          }
-        } else {
-          final move = matchingMoves.first;
-          _clearSelection();
-          widget.onMove?.call(move);
-        }
+        await _executeMoveFromSelection(_selectedSquare!, square, matchingMoves);
       } else {
         _clearSelection();
       }
+    }
+  }
+
+  Future<void> _executeMoveFromSelection(
+    Square from,
+    Square to,
+    List<Move> matchingMoves,
+  ) async {
+    // Check if pawn promotion is needed
+    if (matchingMoves.any((m) => m.promotion != null)) {
+      final selectedPromo = widget.onPromotionRequested != null
+          ? await widget.onPromotionRequested!(from, to)
+          : PieceType.queen;
+
+      if (selectedPromo != null) {
+        final promoMove = matchingMoves.firstWhere(
+          (m) => m.promotion == selectedPromo,
+          orElse: () => matchingMoves.first,
+        );
+        _clearSelection();
+        widget.onMove?.call(promoMove);
+      }
+    } else {
+      final move = matchingMoves.first;
+      _clearSelection();
+      widget.onMove?.call(move);
     }
   }
 
@@ -113,9 +121,10 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final boardSize = constraints.maxWidth < constraints.maxHeight
+        final maxSide = constraints.maxWidth < constraints.maxHeight
             ? constraints.maxWidth
             : constraints.maxHeight;
+        final boardSize = (maxSide).clamp(240.0, 600.0);
         final squareSize = boardSize / 8.0;
 
         return Center(
@@ -123,12 +132,17 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
             width: boardSize,
             height: boardSize,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF263248).withValues(alpha: 0.8),
+                width: 3.0,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  color: Colors.black.withValues(alpha: 0.45),
+                  blurRadius: 24,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -194,19 +208,19 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
     final legalMoveToThis = widget.showLegalMoves && _selectedSquare != null
         ? _legalMovesFromSelected.any((m) => m.to == square)
         : false;
-    final isCaptureTarget = legalMoveToThis && (piece != null ||
-        (widget.gameState.enPassantTarget == square &&
-            widget.gameState.pieceAt(_selectedSquare!)?.type == PieceType.pawn));
+
+    final isCaptureTarget = legalMoveToThis &&
+        (piece != null ||
+            (widget.gameState.enPassantTarget == square &&
+                widget.gameState.pieceAt(_selectedSquare!)?.type ==
+                    PieceType.pawn));
 
     // Determine square background color
     Color squareBg = isLight ? themeColors.lightSquare : themeColors.darkSquare;
     if (isSelected) {
-      squareBg = themeColors.selectedHighlight;
+      squareBg = Color.alphaBlend(themeColors.selectedHighlight, squareBg);
     } else if (isLastMoveOrigin || isLastMoveTarget) {
-      squareBg = Color.alphaBlend(
-        themeColors.lastMoveHighlight,
-        squareBg,
-      );
+      squareBg = Color.alphaBlend(themeColors.lastMoveHighlight, squareBg);
     }
 
     // Accessibility description
@@ -214,70 +228,141 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
         '${piece != null ? "${piece.color.name} ${piece.type.name}" : "empty square"}'
         '${legalMoveToThis ? ", legal move target" : ""}';
 
+    final squareContent = Container(
+      color: squareBg,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Check Danger Glow Aura on King
+          if (isKingInCheck)
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    themeColors.checkHighlight,
+                    themeColors.checkHighlight.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+
+          // Legal Move Indicators
+          if (legalMoveToThis)
+            if (isCaptureTarget)
+              Container(
+                width: squareSize * 0.88,
+                height: squareSize * 0.88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: themeColors.legalDotColor,
+                    width: squareSize * 0.09,
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: squareSize * 0.32,
+                height: squareSize * 0.32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: themeColors.legalDotColor,
+                ),
+              ),
+
+          // Render Piece
+          if (piece != null)
+            _buildDraggablePiece(square, piece, isSelected, squareSize),
+        ],
+      ),
+    );
+
+    // Wrap in DragTarget for Drag & Drop support
     return Semantics(
       label: semanticsLabel,
       button: true,
-      child: GestureDetector(
-        onTap: () => _onSquareTapped(square),
-        child: Container(
-          color: squareBg,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Check glow
-              if (isKingInCheck)
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        themeColors.checkHighlight,
-                        themeColors.checkHighlight.withValues(alpha: 0.0),
-                      ],
-                    ),
-                  ),
-                ),
+      child: DragTarget<Square>(
+        onWillAcceptWithDetails: (details) {
+          if (!widget.isInteractive || widget.gameState.isGameOver) return false;
+          final fromSquare = details.data;
+          final legalMoves = MoveGenerator.generateLegalMoves(widget.gameState);
+          return legalMoves.any((m) => m.from == fromSquare && m.to == square);
+        },
+        onAcceptWithDetails: (details) async {
+          final fromSquare = details.data;
+          final legalMoves = MoveGenerator.generateLegalMoves(widget.gameState);
+          final matchingMoves = legalMoves
+              .where((m) => m.from == fromSquare && m.to == square)
+              .toList();
+          if (matchingMoves.isNotEmpty) {
+            await _executeMoveFromSelection(fromSquare, square, matchingMoves);
+          }
+        },
+        builder: (context, candidateData, rejectedData) {
+          return GestureDetector(
+            onTap: () => _onSquareTapped(square),
+            child: squareContent,
+          );
+        },
+      ),
+    );
+  }
 
-              // Legal move dot / capture indicator
-              if (legalMoveToThis)
-                if (isCaptureTarget)
-                  Container(
-                    width: squareSize * 0.88,
-                    height: squareSize * 0.88,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: themeColors.legalDotColor,
-                        width: squareSize * 0.08,
-                      ),
-                    ),
-                  )
-                else
-                  Container(
-                    width: squareSize * 0.32,
-                    height: squareSize * 0.32,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: themeColors.legalDotColor,
-                    ),
-                  ),
+  Widget _buildDraggablePiece(
+    Square square,
+    Piece piece,
+    bool isSelected,
+    double squareSize,
+  ) {
+    final isPlayerTurnPiece =
+        widget.isInteractive && piece.color == widget.gameState.turn;
 
-              // Chess piece
-              if (piece != null)
-                AnimatedScale(
-                  scale: isSelected ? 1.15 : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  curve: Curves.easeOutBack,
-                  child: ChessPieceWidget(
-                    piece: piece,
-                    size: squareSize * 0.85,
-                    style: widget.pieceStyle,
-                  ),
-                ),
-            ],
+    final pieceWidget = AnimatedScale(
+      scale: isSelected ? 1.14 : 1.0,
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOutBack,
+      child: ChessPieceWidget(
+        piece: piece,
+        size: squareSize * 0.88,
+        style: widget.pieceStyle,
+      ),
+    );
+
+    if (!isPlayerTurnPiece) {
+      return pieceWidget;
+    }
+
+    return Draggable<Square>(
+      data: square,
+      onDragStarted: () {
+        HapticService.instance.onPieceSelected();
+        final allLegalMoves =
+            MoveGenerator.generateLegalMoves(widget.gameState);
+        final pieceMoves =
+            allLegalMoves.where((m) => m.from == square).toList();
+
+        setState(() {
+          _selectedSquare = square;
+          _legalMovesFromSelected = pieceMoves;
+        });
+      },
+      feedback: Transform.translate(
+        offset: Offset(-squareSize * 0.5, -squareSize * 0.5),
+        child: Material(
+          type: MaterialType.transparency,
+          child: ChessPieceWidget(
+            piece: piece,
+            size: squareSize * 1.15,
+            style: widget.pieceStyle,
           ),
         ),
       ),
+      childWhenDragging: Opacity(
+        opacity: 0.35,
+        child: pieceWidget,
+      ),
+      child: pieceWidget,
     );
   }
 
@@ -285,27 +370,27 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
     return IgnorePointer(
       child: Stack(
         children: [
-          // Rank Numbers (1..8) on left
+          // Rank Numbers (1..8) on left edge
           for (int r = 0; r < 8; r++)
             Positioned(
-              left: 3,
+              left: 4,
               top: r * squareSize + 3,
               child: Text(
                 widget.isFlipped ? '${r + 1}' : '${8 - r}',
                 style: TextStyle(
                   fontSize: squareSize * 0.20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   color: (r % 2 == (widget.isFlipped ? 1 : 0))
-                      ? themeColors.darkSquare
-                      : themeColors.lightSquare,
+                      ? themeColors.coordinateColorDark
+                      : themeColors.coordinateColorLight,
                 ),
               ),
             ),
 
-          // File Letters (a..h) on bottom
+          // File Letters (a..h) on bottom edge
           for (int f = 0; f < 8; f++)
             Positioned(
-              right: (7 - f) * squareSize + 3,
+              right: (7 - f) * squareSize + 4,
               bottom: 2,
               child: Text(
                 widget.isFlipped
@@ -313,10 +398,10 @@ class _ChessBoardWidgetState extends State<ChessBoardWidget> {
                     : String.fromCharCode('a'.codeUnitAt(0) + f),
                 style: TextStyle(
                   fontSize: squareSize * 0.20,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   color: (f % 2 == (widget.isFlipped ? 0 : 1))
-                      ? themeColors.darkSquare
-                      : themeColors.lightSquare,
+                      ? themeColors.coordinateColorDark
+                      : themeColors.coordinateColorLight,
                 ),
               ),
             ),

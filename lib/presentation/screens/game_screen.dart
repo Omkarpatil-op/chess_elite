@@ -447,7 +447,7 @@ class _GameScreenState extends State<GameScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.darkSurface,
-        title: const Text('Resign Game?'),
+        title: const Text('Resign Match?'),
         content: const Text('Are you sure you want to forfeit this match?'),
         actions: [
           TextButton(
@@ -589,13 +589,13 @@ class _GameScreenState extends State<GameScreen> {
           widget.mode == GameMode.vsAi
               ? 'vs ${widget.aiDifficulty.label} AI'
               : (widget.mode == GameMode.onlineMultiplayer
-                  ? 'Online Match'
+                  ? 'Online Arena'
                   : 'Pass & Play'),
           style: AppTypography.titleMedium,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.flip_camera_android_rounded),
+            icon: const Icon(Icons.flip_camera_android_rounded, size: 20),
             tooltip: 'Flip Board',
             onPressed: () => setState(() => _isFlipped = !_isFlipped),
           ),
@@ -603,10 +603,10 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           child: Column(
             children: [
-              // Top Player Info & Clock
+              // 1. Top Opponent Header & Clock
               ChessClockWidget(
                 playerColor: topPlayerColor,
                 remainingMs: topClockMs,
@@ -618,7 +618,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 6),
 
-              // Top Captured Pieces
+              // 2. Top Captured Pieces Ticker & AI State
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -632,27 +632,38 @@ class _GameScreenState extends State<GameScreen> {
                     pieceStyle: _settings.pieceStyle,
                   ),
                   if (_isAiThinking)
-                    Row(
-                      children: [
-                        const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Thinking...',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.goldAccent,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 10,
+                            height: 10,
+                            child: CircularProgressIndicator(strokeWidth: 1.8, color: AppColors.goldAccent),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            'AI Thinking...',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.goldLight,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
               const SizedBox(height: 6),
 
-              // Chessboard with Evaluation Bar
+              // 3. Central Dominated Chessboard with Evaluation Gauge
               Expanded(
                 child: Row(
                   children: [
@@ -663,7 +674,7 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                     const SizedBox(width: 8),
 
-                    // Main 8x8 Board
+                    // Main 8x8 Vector Chessboard
                     Expanded(
                       child: ChessBoardWidget(
                         gameState: _gameState,
@@ -690,7 +701,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 6),
 
-              // Bottom Captured Pieces
+              // 4. Bottom Player Captured Pieces
               Align(
                 alignment: Alignment.centerLeft,
                 child: CapturedPiecesWidget(
@@ -705,7 +716,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 6),
 
-              // Bottom Player Info & Clock
+              // 5. Bottom Player Header & Active Clock
               ChessClockWidget(
                 playerColor: bottomPlayerColor,
                 remainingMs: bottomClockMs,
@@ -715,26 +726,31 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Move History Strip
+              // 6. Horizontal Move Notation Tape
               MoveHistoryWidget(
                 moveHistory: _gameState.moveHistory,
                 currentMoveIndex: _gameState.moveHistory.length - 1,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
-              // In-game Action Controls (Resign, Draw, Settings)
+              // 7. Tactical In-Game Action Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: _gameState.isGameOver ? null : _confirmResign,
-                    icon: const Icon(Icons.flag_outlined, size: 16),
-                    label: const Text('Resign'),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _gameState.isGameOver ? null : _confirmResign,
+                      icon: const Icon(Icons.flag_outlined, size: 16),
+                      label: const Text('Resign'),
+                    ),
                   ),
-                  OutlinedButton.icon(
-                    onPressed: _gameState.isGameOver ? null : _offerDraw,
-                    icon: const Icon(Icons.handshake_outlined, size: 16),
-                    label: const Text('Draw'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _gameState.isGameOver ? null : _offerDraw,
+                      icon: const Icon(Icons.handshake_outlined, size: 16),
+                      label: const Text('Draw'),
+                    ),
                   ),
                 ],
               ),

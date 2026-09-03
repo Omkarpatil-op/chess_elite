@@ -91,23 +91,23 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        title: const Text('Play Online'),
+        title: const Text('Live Arena Matchmaking'),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             children: [
               if (!_isSearching) ...[
                 // Time control selection
                 Text(
-                  'Select Time Control',
+                  'Choose Tournament Cadence',
                   style: AppTypography.titleLarge,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
-                  'Rated matches will update your official ELO rating.',
-                  style: AppTypography.bodyMedium.copyWith(
+                  'Ranked competitive matchmaking adjusts your official Elo.',
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondaryDark,
                   ),
                 ),
@@ -116,9 +116,9 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.3,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: 1.35,
                     children: [
                       TimeControl.bullet1_0,
                       TimeControl.blitz3_0,
@@ -130,20 +130,32 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                       final isSelected = tc.id == _selectedTime.id;
                       return InkWell(
                         onTap: () => setState(() => _selectedTime = tc),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
+                        borderRadius: BorderRadius.circular(18),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.goldAccent.withValues(alpha: 0.15)
-                                : AppColors.darkSurface,
-                            borderRadius: BorderRadius.circular(16),
+                            gradient: isSelected
+                                ? const LinearGradient(
+                                    colors: [Color(0xFF262E40), Color(0xFF161E2E)],
+                                  )
+                                : null,
+                            color: isSelected ? null : AppColors.darkSurface,
+                            borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.goldAccent
                                   : AppColors.darkBorder,
-                              width: isSelected ? 2.0 : 1.0,
+                              width: isSelected ? 1.8 : 1.0,
                             ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.goldAccent.withValues(alpha: 0.15),
+                                      blurRadius: 12,
+                                    ),
+                                  ]
+                                : null,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +167,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                                 children: [
                                   Text(
                                     tc.category.icon,
-                                    style: const TextStyle(fontSize: 22),
+                                    style: const TextStyle(fontSize: 24),
                                   ),
                                   if (isSelected)
                                     const Icon(
@@ -168,15 +180,16 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                               const Spacer(),
                               Text(
                                 tc.displayName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                style: AppTypography.titleMedium.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? AppColors.goldLight : AppColors.textPrimaryDark,
                                 ),
                               ),
                               Text(
                                 tc.category.label,
                                 style: AppTypography.labelSmall.copyWith(
                                   color: AppColors.textSecondaryDark,
+                                  fontSize: 11,
                                 ),
                               ),
                             ],
@@ -191,7 +204,7 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _startSearch,
-                    icon: const Icon(Icons.search_rounded),
+                    icon: const Icon(Icons.search_rounded, size: 20),
                     label: const Text('Find Opponent'),
                   ),
                 ),
@@ -201,81 +214,100 @@ class _MatchmakingScreenState extends State<MatchmakingScreen>
                 AnimatedBuilder(
                   animation: _pulseController,
                   builder: (context, child) {
-                    final scale = 1.0 + (_pulseController.value * 0.25);
+                    final scale = 1.0 + (_pulseController.value * 0.35);
                     final opacity = (1.0 - _pulseController.value).clamp(0.0, 1.0);
 
                     return Stack(
                       alignment: Alignment.center,
                       children: [
                         Transform.scale(
-                          scale: scale * 1.5,
+                          scale: scale * 1.8,
                           child: Container(
-                            width: 140,
-                            height: 140,
+                            width: 150,
+                            height: 150,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.goldAccent.withValues(alpha: opacity * 0.2),
+                              color: AppColors.goldAccent.withValues(alpha: opacity * 0.12),
                             ),
                           ),
                         ),
                         Transform.scale(
                           scale: scale,
                           child: Container(
-                            width: 140,
-                            height: 140,
+                            width: 150,
+                            height: 150,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.goldAccent.withValues(alpha: opacity),
-                                width: 2,
+                                color: AppColors.goldAccent.withValues(alpha: opacity * 0.8),
+                                width: 1.5,
                               ),
                             ),
                           ),
                         ),
                         Container(
-                          width: 80,
-                          height: 80,
-                          decoration: const BoxDecoration(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: AppColors.goldAccent,
+                            gradient: const RadialGradient(
+                              colors: [AppColors.goldLight, AppColors.goldAccent],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.goldAccent.withValues(alpha: 0.35),
+                                blurRadius: 28,
+                                spreadRadius: 4,
+                              ),
+                            ],
                           ),
-                          child: const Icon(
-                            Icons.sports_esports_rounded,
-                            color: Colors.black,
-                            size: 40,
+                          child: const Center(
+                            child: Icon(
+                              Icons.sports_esports_rounded,
+                              color: Color(0xFF0D121C),
+                              size: 44,
+                            ),
                           ),
                         ),
                       ],
                     );
                   },
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 40),
 
                 Text(
-                  'Searching for Opponent...',
-                  style: AppTypography.titleLarge,
+                  'Finding Suitable Grandmaster...',
+                  style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
 
                 Text(
-                  'Rating Range: ${widget.user.ratingRapid - 50} - ${widget.user.ratingRapid + 50}',
+                  'Target Range: ${widget.user.ratingRapid - 60} – ${widget.user.ratingRapid + 60} Elo',
                   style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.textSecondaryDark,
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                Text(
-                  'Time Control: ${_selectedTime.displayName}',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.goldAccent,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.goldAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    'Cadence: ${_selectedTime.displayName}',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.goldLight,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 14),
 
                 Text(
-                  'Elapsed: $_searchSeconds s',
+                  'Elapsed: ${_searchSeconds}s',
                   style: AppTypography.clockDigits.copyWith(
                     fontSize: 20,
                     color: AppColors.textSecondaryDark,

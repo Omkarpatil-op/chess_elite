@@ -1,8 +1,8 @@
 enum PieceStyle {
-  stauntonClassic('Staunton Classic', 'Standard tournament weighted pieces with distinct curves'),
-  neoModern('Neo Modern', 'Sleek minimal geometric aesthetic for fast recognition'),
-  woodCarved('Wood Carved', 'Artisanal organic silhouettes with detailed knight styling'),
-  minimalAlpha('Minimalist Alpha', 'Clean high-contrast vector outlines for maximum readability');
+  stauntonClassic('Staunton Tournament', 'Championship standard pieces with weighted curves & regal detail'),
+  neoModern('Neo Modern', 'Clean geometric vector aesthetic for rapid recognition'),
+  woodCarved('Artisan Woodcraft', 'Hand-carved organic silhouettes with detailed knight mane'),
+  minimalAlpha('Minimalist Studio', 'High-contrast minimalist vector outlines for pro readability');
 
   final String label;
   final String description;

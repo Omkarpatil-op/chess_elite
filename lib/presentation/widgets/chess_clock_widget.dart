@@ -24,12 +24,12 @@ class ChessClockWidget extends StatelessWidget {
   });
 
   String _formatTime(int ms) {
-    if (ms <= 0) return '0:00';
+    if (ms <= 0) return '0:00.0';
     final totalSeconds = ms ~/ 1000;
     final minutes = totalSeconds ~/ 60;
     final seconds = totalSeconds % 60;
 
-    // Millisecond display when under 20 seconds
+    // Tenth-of-second precision when under 20 seconds
     if (totalSeconds < 20) {
       final tenths = (ms % 1000) ~/ 100;
       return '$minutes:${seconds.toString().padLeft(2, '0')}.$tenths';
@@ -40,116 +40,149 @@ class ChessClockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLowTime = remainingMs < 15000 && remainingMs > 0;
+    final isCriticalTime = remainingMs < 10000 && remainingMs > 0;
+    final isLowTime = remainingMs < 20000 && remainingMs > 0;
     final isZero = remainingMs <= 0;
 
-    final clockBgColor = isActive
-        ? (isLowTime
-            ? AppColors.rubyError.withValues(alpha: 0.2)
-            : AppColors.goldAccent.withValues(alpha: 0.15))
-        : AppColors.darkSurface;
+    // Visual State Colors
+    Color clockBg;
+    Color borderColor;
+    Color textColor;
 
-    final borderColor = isActive
-        ? (isLowTime ? AppColors.rubyError : AppColors.goldAccent)
-        : AppColors.darkBorder;
-
-    final textColor = isZero
-        ? AppColors.rubyError
-        : (isLowTime
-            ? AppColors.rubyError
-            : (isActive ? AppColors.goldAccent : AppColors.textPrimaryDark));
+    if (isZero) {
+      clockBg = AppColors.rubyError.withValues(alpha: 0.2);
+      borderColor = AppColors.rubyError;
+      textColor = AppColors.rubyError;
+    } else if (isCriticalTime && isActive) {
+      clockBg = AppColors.rubyError.withValues(alpha: 0.25);
+      borderColor = AppColors.rubyError;
+      textColor = AppColors.rubyError;
+    } else if (isLowTime && isActive) {
+      clockBg = AppColors.amberWarning.withValues(alpha: 0.2);
+      borderColor = AppColors.amberWarning;
+      textColor = AppColors.amberWarning;
+    } else if (isActive) {
+      clockBg = AppColors.goldAccent.withValues(alpha: 0.16);
+      borderColor = AppColors.goldAccent;
+      textColor = AppColors.goldLight;
+    } else {
+      clockBg = AppColors.darkSurfaceElevated;
+      borderColor = AppColors.darkBorder;
+      textColor = AppColors.textSecondaryDark;
+    }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor, width: isActive ? 1.5 : 1.0),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isActive ? borderColor : AppColors.darkBorderSubtle,
+          width: isActive ? 1.6 : 1.0,
+        ),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: borderColor.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Player Info
-          Row(
-            children: [
-              // Color indicator icon
-              Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: playerColor.isWhite ? Colors.white : Colors.black,
-                  border: Border.all(
-                    color: playerColor.isWhite ? Colors.grey : Colors.white38,
-                    width: 1.5,
+          // Player Identity
+          Expanded(
+            child: Row(
+              children: [
+                // Color disc
+                Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: playerColor.isWhite ? Colors.white : const Color(0xFF1E2430),
+                    border: Border.all(
+                      color: playerColor.isWhite ? const Color(0xFFCBD5E1) : Colors.white24,
+                      width: 1.5,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+                const SizedBox(width: 10),
+
+                // Name & Rating
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (title != null) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: AppColors.goldAccent,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            title!,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                      Row(
+                        children: [
+                          if (title != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: AppColors.goldAccent,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                title!,
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF0D121C),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Text(
+                              playerName,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.titleSmall.copyWith(
+                                color: isActive ? AppColors.textPrimaryDark : AppColors.textSecondaryDark,
+                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                      ],
-                      Text(
-                        playerName,
-                        style: AppTypography.titleMedium.copyWith(
-                          fontSize: 15,
-                          fontWeight:
-                              isActive ? FontWeight.bold : FontWeight.w500,
-                        ),
+                        ],
                       ),
+                      if (playerRating != null)
+                        Text(
+                          '$playerRating',
+                          style: AppTypography.ratingDigits.copyWith(
+                            fontSize: 12,
+                            color: AppColors.textMutedDark,
+                          ),
+                        ),
                     ],
                   ),
-                  if (playerRating != null)
-                    Text(
-                      '$playerRating',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.textSecondaryDark,
-                      ),
-                    ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
 
-          // Digital Countdown Clock
+          // Digital Tournament Clock Numerals
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: clockBgColor,
-              borderRadius: BorderRadius.circular(8),
+              color: clockBg,
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: borderColor.withValues(alpha: isActive ? 0.8 : 0.4),
-                width: 1,
+                color: borderColor.withValues(alpha: isActive ? 0.9 : 0.4),
+                width: 1.2,
               ),
             ),
             child: Text(
               _formatTime(remainingMs),
               style: AppTypography.clockDigits.copyWith(
                 color: textColor,
-                fontSize: 20,
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),

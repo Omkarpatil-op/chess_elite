@@ -90,7 +90,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         title: const Text('Game Review & Analysis'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.copy_rounded),
+            icon: const Icon(Icons.copy_rounded, size: 20),
             tooltip: 'Copy PGN',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: widget.match.pgn));
@@ -100,7 +100,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.flip_camera_android_rounded),
+            icon: const Icon(Icons.flip_camera_android_rounded, size: 20),
             tooltip: 'Flip Board',
             onPressed: () => setState(() => _isFlipped = !_isFlipped),
           ),
@@ -108,48 +108,51 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Column(
             children: [
-              // Match Title & Result Header
+              // Match Summary Header Card
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: AppColors.darkSurface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.darkBorder),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${widget.match.whitePlayerName} (${widget.match.whitePlayerRating}) vs ${widget.match.blackPlayerName} (${widget.match.blackPlayerRating})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          '${widget.match.timeControl.name}  •  ${widget.match.result.name}',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.textSecondaryDark,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${widget.match.whitePlayerName} (${widget.match.whitePlayerRating}) vs ${widget.match.blackPlayerName} (${widget.match.blackPlayerRating})',
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            '${widget.match.timeControl.name}  •  ${widget.match.result.name}',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondaryDark,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.goldAccent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.goldAccent.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'Move $_currentMoveIdx / ${_states.length - 1}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.goldAccent,
+                        style: AppTypography.ratingDigits.copyWith(
+                          color: AppColors.goldLight,
                           fontSize: 12,
                         ),
                       ),
@@ -157,7 +160,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // Board with Evaluation Bar
               Expanded(
@@ -183,9 +186,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
-              // Captured pieces
+              // Captured pieces row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -201,18 +204,18 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
-              // Move navigation controls (|<, <, >, >|)
+              // Replay Navigation Controls (|<, <, >, >|)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton.filledTonal(
                     onPressed: _currentMoveIdx > 0 ? () => _goToMove(0) : null,
                     icon: const Icon(Icons.first_page_rounded),
-                    tooltip: 'Start of Game',
+                    tooltip: 'Start of Match',
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   IconButton.filledTonal(
                     onPressed: _currentMoveIdx > 0
                         ? () => _goToMove(_currentMoveIdx - 1)
@@ -220,7 +223,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     icon: const Icon(Icons.chevron_left_rounded),
                     tooltip: 'Previous Move',
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   IconButton.filledTonal(
                     onPressed: _currentMoveIdx < _states.length - 1
                         ? () => _goToMove(_currentMoveIdx + 1)
@@ -228,19 +231,19 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                     icon: const Icon(Icons.chevron_right_rounded),
                     tooltip: 'Next Move',
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   IconButton.filledTonal(
                     onPressed: _currentMoveIdx < _states.length - 1
                         ? () => _goToMove(_states.length - 1)
                         : null,
                     icon: const Icon(Icons.last_page_rounded),
-                    tooltip: 'End of Game',
+                    tooltip: 'Final Move',
                   ),
                 ],
               ),
               const SizedBox(height: 8),
 
-              // Move list table
+              // Move Tape Strip
               MoveHistoryWidget(
                 moveHistory: _moves,
                 currentMoveIndex: _currentMoveIdx - 1,

@@ -39,24 +39,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppBar(
-        title: const Text('Game History & Archive'),
+        title: const Text('Match Archive & PGNs'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.goldAccent))
           : _matches.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.history_edu_outlined, size: 64, color: AppColors.textMutedDark),
-                      const SizedBox(height: 16),
-                      Text('No games recorded yet', style: AppTypography.titleMedium),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Matches you play will appear here with full PGN review.',
-                        style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.darkSurfaceElevated,
+                            border: Border.all(color: AppColors.darkBorder),
+                          ),
+                          child: const Icon(Icons.history_edu_rounded, size: 40, color: AppColors.goldAccent),
+                        ),
+                        const SizedBox(height: 20),
+                        Text('No Recorded Matches', style: AppTypography.titleLarge),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your completed tournament and AI games will appear here with full move analysis.',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.separated(
@@ -73,7 +86,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ? AppColors.sapphireInfo
                         : (isWin ? AppColors.emeraldSuccess : AppColors.rubyError);
 
-                    final resultText = isDraw ? 'Draw' : (isWin ? 'Win' : 'Loss');
+                    final resultText = isDraw ? 'DRAW' : (isWin ? 'WIN' : 'LOSS');
 
                     return InkWell(
                       onTap: () {
@@ -105,8 +118,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 resultText,
                                 style: TextStyle(
                                   color: resultColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
@@ -119,12 +132,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 children: [
                                   Text(
                                     isWhite ? match.blackPlayerName : match.whitePlayerName,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: AppTypography.titleSmall.copyWith(fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     '${match.timeControl.name}  •  ${match.terminationReason ?? ""}',
-                                    style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark),
+                                    style: AppTypography.labelSmall.copyWith(
+                                      color: AppColors.textSecondaryDark,
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -139,8 +155,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     (isWhite ? match.whiteRatingDelta! : match.blackRatingDelta!) >= 0
                                         ? '+${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}'
                                         : '${isWhite ? match.whiteRatingDelta : match.blackRatingDelta}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                    style: AppTypography.ratingDigits.copyWith(
                                       color: (isWhite ? match.whiteRatingDelta! : match.blackRatingDelta!) >= 0
                                           ? AppColors.emeraldSuccess
                                           : AppColors.rubyError,
@@ -149,7 +164,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   ),
                                 ],
                                 const SizedBox(height: 4),
-                                const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textMutedDark),
+                                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textMutedDark),
                               ],
                             ),
                           ],

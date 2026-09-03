@@ -20,31 +20,36 @@ class EvaluationBarWidget extends StatelessWidget {
     final topFraction = isFlipped ? whiteFraction : (1.0 - whiteFraction);
 
     return Container(
-      width: 14,
+      width: 12,
       decoration: BoxDecoration(
-        color: const Color(0xFF1E232A),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.darkBorder, width: 1),
+        color: const Color(0xFF141923),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.darkBorder, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 6,
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        alignment: Alignment.center,
+      child: Column(
         children: [
-          Column(
-            children: [
-              Expanded(
-                flex: (topFraction * 1000).toInt().clamp(1, 999),
-                child: Container(
-                  color: isFlipped ? Colors.white : const Color(0xFF161B22),
-                ),
-              ),
-              Expanded(
-                flex: ((1.0 - topFraction) * 1000).toInt().clamp(1, 999),
-                child: Container(
-                  color: isFlipped ? const Color(0xFF161B22) : Colors.white,
-                ),
-              ),
-            ],
+          Expanded(
+            flex: (topFraction * 1000).toInt().clamp(1, 999),
+            child: Container(
+              color: isFlipped ? Colors.white : const Color(0xFF161B22),
+            ),
+          ),
+          Container(
+            height: 1.5,
+            color: AppColors.goldAccent.withValues(alpha: 0.6),
+          ),
+          Expanded(
+            flex: ((1.0 - topFraction) * 1000).toInt().clamp(1, 999),
+            child: Container(
+              color: isFlipped ? const Color(0xFF161B22) : Colors.white,
+            ),
           ),
         ],
       ),

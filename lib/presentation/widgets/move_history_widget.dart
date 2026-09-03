@@ -19,11 +19,16 @@ class MoveHistoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (moveHistory.isEmpty) {
       return Container(
-        height: 48,
+        height: 44,
         alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.darkSurface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.darkBorderSubtle),
+        ),
         child: Text(
-          'Game in progress...',
-          style: AppTypography.bodyMedium.copyWith(
+          'Match in progress — make your first move',
+          style: AppTypography.bodySmall.copyWith(
             color: AppColors.textMutedDark,
             fontStyle: FontStyle.italic,
           ),
@@ -34,16 +39,16 @@ class MoveHistoryWidget extends StatelessWidget {
     final rowCount = (moveHistory.length + 1) ~/ 2;
 
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.darkSurface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.darkBorder),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        reverse: false,
+        physics: const BouncingScrollPhysics(),
         itemCount: rowCount,
         itemBuilder: (context, i) {
           final moveNum = i + 1;
@@ -65,33 +70,33 @@ class MoveHistoryWidget extends StatelessWidget {
               Text(
                 '$moveNum. ',
                 style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.textSecondaryDark,
-                  fontWeight: FontWeight.bold,
+                  color: AppColors.textMutedDark,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
 
               // White Move
               GestureDetector(
                 onTap: () => onMoveSelected?.call(whiteMoveIdx),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                   decoration: BoxDecoration(
                     color: isWhiteSelected
-                        ? AppColors.goldAccent.withValues(alpha: 0.25)
+                        ? AppColors.goldAccent.withValues(alpha: 0.22)
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
+                    border: isWhiteSelected
+                        ? Border.all(color: AppColors.goldAccent.withValues(alpha: 0.5))
+                        : null,
                   ),
                   child: Text(
                     whiteMove.san,
-                    style: TextStyle(
-                      fontWeight: isWhiteSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
+                    style: AppTypography.moveNotation.copyWith(
+                      fontWeight: isWhiteSelected ? FontWeight.w800 : FontWeight.w500,
                       color: isWhiteSelected
-                          ? AppColors.goldAccent
+                          ? AppColors.goldLight
                           : AppColors.textPrimaryDark,
-                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -102,31 +107,31 @@ class MoveHistoryWidget extends StatelessWidget {
                 const SizedBox(width: 4),
                 GestureDetector(
                   onTap: () => onMoveSelected?.call(blackMoveIdx),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 4),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                     decoration: BoxDecoration(
                       color: isBlackSelected
-                          ? AppColors.goldAccent.withValues(alpha: 0.25)
+                          ? AppColors.goldAccent.withValues(alpha: 0.22)
                           : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
+                      border: isBlackSelected
+                          ? Border.all(color: AppColors.goldAccent.withValues(alpha: 0.5))
+                          : null,
                     ),
                     child: Text(
                       blackMove.san,
-                      style: TextStyle(
-                        fontWeight: isBlackSelected
-                            ? FontWeight.bold
-                            : FontWeight.w500,
+                      style: AppTypography.moveNotation.copyWith(
+                        fontWeight: isBlackSelected ? FontWeight.w800 : FontWeight.w500,
                         color: isBlackSelected
-                            ? AppColors.goldAccent
+                            ? AppColors.goldLight
                             : AppColors.textPrimaryDark,
-                        fontSize: 13,
                       ),
                     ),
                   ),
                 ),
               ],
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
             ],
           );
         },
